@@ -1,37 +1,21 @@
-provider "google" {
-  project = "playground-s-11-8efa797d"
-  region  = "us-central1"
-  zone    = "us-central1-c"
-}
+module "network" {
+  source  = "terraform-google-modules/network/google"
+  version = "2.0.2"
 
-resource "google_compute_network" "vpc_network" {
-  name = "new-terraform-network"
-}
+  network_name = "terraform-vpc-network"
+  project_id   = var.project
 
-terraform {
-  backend "gcs" {
-    bucket = "terraform-test2-bucket"
-    prefix = "terraform1"
-   }
-}
+  subnets = [
+    {
+      subnet_name   = "subnet-01"
+      subnet_ip     = var.cidrs
+      subnet_region = var.region
 
-resource "google_compute_instance" "vm_instance" {
-  name         = "terraform-instance"
-  machine_type = "f1-micro"
+    },
+  ]
 
-  boot_disk {
-    initialize_params {
-      image = "debian-cloud/debian-9"
-    }
-  }
+  secondary_ranges = {
+    subnet-01 = []
 
-  network_interface {
-    network = google_compute_network.vpc_network.name
-    access_config {
-    }
   }
 }
-resource "google_compute_address" "static_ip" {
-  name = "terraform-static-ip"
-}
-
